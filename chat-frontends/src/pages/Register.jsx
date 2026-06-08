@@ -1,22 +1,34 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, UserPlus } from 'lucide-react';
-import axios from 'axios'
+import { User, Mail, Lock, UserPlus, CheckCircle, AlertCircle } from 'lucide-react';
+import axios from 'axios';
 import './Register.css';
 
 const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [feedback, setFeedback] = useState(null); // { type: 'success'|'error', message: string }
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const userData = { name, email, password }
-    const response = await axios.post('http://localhost:3000/api/register', userData)
-    // console.log('Registering with', userData);
-    navigate('/login')
-  }; 
+    setLoading(true);
+    setFeedback(null);
+
+    try {
+      const userData = { name, email, password };
+      await axios.post('http://localhost:3000/api/register', userData);
+      setFeedback({ type: 'success', message: 'Account created! Redirecting to login…' });
+      setTimeout(() => navigate('/login'), 1500);
+    } catch (error) {
+      const msg = error.response?.data?.message || 'Registration failed. Please try again.';
+      setFeedback({ type: 'error', message: msg });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="register-page">
@@ -26,6 +38,15 @@ const Register = () => {
             <h1>Create Account</h1>
             <p>Join jstChat and start connecting</p>
           </div>
+
+          {feedback && (
+            <div className={`feedback-banner feedback-${feedback.type}`}>
+              {feedback.type === 'success'
+                ? <CheckCircle size={16} />
+                : <AlertCircle size={16} />}
+              {feedback.message}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit}>
             <div className="form-group">
@@ -41,6 +62,7 @@ const Register = () => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -58,6 +80,7 @@ const Register = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -75,13 +98,25 @@ const Register = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  disabled={loading}
                 />
               </div>
             </div>
 
-            <button type="submit" className="btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '2rem' }}>
-              <UserPlus size={20} />
-              Sign Up
+            <button
+              type="submit"
+              className="btn-primary"
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '2rem' }}
+              disabled={loading}
+            >
+              {loading ? (
+                <span className="spinner" />
+              ) : (
+                <>
+                  <UserPlus size={20} />
+                  Sign Up
+                </>
+              )}
             </button>
           </form>
 

@@ -1,20 +1,23 @@
 import jwt from 'jsonwebtoken'
-const JWT_SECRECT = 'shm123'
 
-const verifyToken = (req,res,next)=>{
+const JWT_SECRET = 'shm123'
+
+const verifyToken = (req, res, next) => {
     const authHeader = req.headers.authorization
-    // console.log("auth",authHeader.token);
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ message: 'Authorization header missing or malformed' })
+    }
+
     const token = authHeader.split(' ')[1]
+
     try {
-        const decoded = jwt.verify(token,JWT_SECRECT)
+        const decoded = jwt.verify(token, JWT_SECRET)
         req.user = decoded
         next()
     } catch (error) {
-        console.log(error);
-        
+        return res.status(401).json({ message: 'Invalid or expired token' })
     }
-    
-
 }
 
 export default verifyToken

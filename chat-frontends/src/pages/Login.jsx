@@ -1,34 +1,32 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, LogIn } from 'lucide-react';
+import { Mail, Lock, LogIn, AlertCircle } from 'lucide-react';
 import './Login.css';
 import axios from 'axios';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
 
     try {
       const userData = { email, password };
+      const response = await axios.post('http://localhost:3000/api/login', userData);
 
-      const response = await axios.post('http://localhost:3000/api/login',userData);
-
-      localStorage.setItem('user',JSON.stringify(response.data.user));
-
-      localStorage.setItem('token',response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      localStorage.setItem('token', response.data.token);
       navigate('/chat');
-
     } catch (error) {
-      console.log(error);
-
-      alert(
-        error.response?.data?.message ||
-        "Login failed"
-      );
+      setError(error.response?.data?.message || 'Login failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -40,6 +38,13 @@ const Login = () => {
             <h1>Welcome Back</h1>
             <p>Sign in to continue to jstChat</p>
           </div>
+
+          {error && (
+            <div className="feedback-banner feedback-error">
+              <AlertCircle size={16} />
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit}>
             <div className="form-group">
@@ -55,6 +60,7 @@ const Login = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -72,13 +78,25 @@ const Login = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  disabled={loading}
                 />
               </div>
             </div>
 
-            <button type="submit" className="btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '2rem' }}>
-              <LogIn size={20} />
-              Sign In
+            <button
+              type="submit"
+              className="btn-primary"
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '2rem' }}
+              disabled={loading}
+            >
+              {loading ? (
+                <span className="spinner" />
+              ) : (
+                <>
+                  <LogIn size={20} />
+                  Sign In
+                </>
+              )}
             </button>
           </form>
 
