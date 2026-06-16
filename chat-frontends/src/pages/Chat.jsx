@@ -85,13 +85,13 @@ const Chat = () => {
       } finally {
         setLoadingUsers(false);
       }
-    };
+    }; 
 
     fetchUsers();
   }, []);
 
   // Load messages when active chat changes
-  useEffect(() => {
+  useEffect(() => { 
     if (!activeChat) return;
 
     // If already loaded, don't re-fetch

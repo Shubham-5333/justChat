@@ -1,4 +1,5 @@
 import messagedb from "../schema/messageSchema.js";
+import productdb from "../schema/productSchema.js";
 import userdb from "../schema/userSchema.js";
 import jwt from 'jsonwebtoken'
 
@@ -88,4 +89,45 @@ const getMessages = async (req, res) => {
     }
 };
 
-export { register, login, getUsers, getMessages }
+const storeImages = async (req, res) => {
+    if (!req.files || req.files.length === 0) {
+        return res.status(400).json({
+            message: "Please upload a picture"
+        });
+    }
+
+    try {
+        const uploadImg = req.files.map(
+            file => `/images/${file.filename}`
+        );
+
+        const product = new productdb({
+            images: uploadImg,
+        });
+
+        const productData = await product.save();
+
+        res.status(201).json({productData,  message: "uploaded image" });
+
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            message: error.message,
+        });
+    }
+
+}
+
+const getImages = async (req, res) => {
+    try {
+        const data = await productdb.find()
+        console.log(data);
+        res.status(200).json({ data: data })
+    } catch (error) {
+        res.status(500).json({ message: "server error" })
+    }
+
+}
+
+export { register, login, getUsers, getMessages, storeImages, getImages }
